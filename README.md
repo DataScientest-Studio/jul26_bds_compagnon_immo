@@ -20,8 +20,6 @@ Les principaux objectifs du projet sont :
 - construire un modèle permettant d'estimer le prix au m² d'un logement ;
 - comparer plusieurs algorithmes de Machine Learning ;
 - optimiser les performances du meilleur modèle ;
-- explorer une approche de Deep Learning sur les données tabulaires ;
-- interpréter les prédictions du modèle ;
 - intégrer le modèle final dans une application Streamlit.
 
 ## Données
@@ -170,26 +168,6 @@ Globalement, les prédictions suivent la tendance des valeurs réelles. Cependan
 
 L'analyse des plus grandes erreurs confirme que le modèle rencontre davantage de difficultés sur certains biens situés dans la partie haute de la distribution des prix et tend à sous-estimer certains biens particulièrement chers.
 
-## Deep Learning – MLP
-
-Une approche de Deep Learning a également été explorée afin de comparer XGBoost à un réseau de neurones sur les mêmes données tabulaires.
-
-Un MLP (Multi-Layer Perceptron) composé de plusieurs couches Dense a été développé.
-
-Les données ont été adaptées au réseau de neurones avec une standardisation des variables numériques.
-
-L'entraînement utilise notamment :
-
-- une séparation des données d'entraînement et de validation ;
-- plusieurs epochs ;
-- des batchs de 32 observations ;
-- un EarlyStopping afin de limiter le surapprentissage et de conserver les meilleurs poids.
-
-Une courbe d'apprentissage permet ensuite de comparer l'évolution de l'erreur sur les données d'entraînement et de validation.
-
-Le MLP est finalement évalué avec les mêmes métriques que XGBoost (MAE, RMSE et R²), afin de comparer directement les deux approches.
-
-Cette expérimentation permet d'évaluer l'intérêt du Deep Learning sur les données tabulaires du projet.
 
 ## Sauvegarde du modèle
 

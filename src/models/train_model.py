@@ -190,6 +190,7 @@ def optimiser_XGBRegressor(X_train, y_train):
 
     return meilleur_modele, meilleurs_parametres, mae_cv
 
+
 def optimiser_XGBRegressor_2(X_train, y_train):
 
     pipeline_xgb = Pipeline([
@@ -201,28 +202,24 @@ def optimiser_XGBRegressor_2(X_train, y_train):
         ))
     ])
 
-    # Recherche resserrée autour des meilleurs paramètres obtenus
     parametres = {
-        "model__n_estimators": randint(780, 951),
-        "model__learning_rate": uniform(0.045, 0.03),   # 0.045 à 0.075
-        "model__max_depth": [7, 8, 9],
-        "model__min_child_weight": [1, 2],
-
-        "model__subsample": uniform(0.78, 0.12),        # 0.78 à 0.90
-        "model__colsample_bytree": uniform(0.75, 0.12),# 0.75 à 0.87
-
-        "model__reg_alpha": uniform(0.20, 0.20),        # 0.20 à 0.40
-        "model__reg_lambda": uniform(2.2, 1.0),         # 2.2 à 3.2
-
-        "model__gamma": uniform(0.02, 0.10)             # 0.02 à 0.12
+        "model__n_estimators": randint(700, 901),
+        "model__learning_rate": uniform(0.05, 0.02),
+        "model__max_depth": [6, 7, 8],
+        "model__min_child_weight": [1, 2, 3],
+        "model__subsample": uniform(0.75, 0.15),
+        "model__colsample_bytree": uniform(0.75, 0.15),
+        "model__reg_alpha": uniform(0.10, 0.20),
+        "model__reg_lambda": uniform(1.8, 1.2),
+        "model__gamma": uniform(0.05, 0.15)
     }
 
     recherche_xgb = RandomizedSearchCV(
         estimator=pipeline_xgb,
         param_distributions=parametres,
-        n_iter=20,                 # 40 au lieu de 20
+        n_iter=20,
         scoring="neg_mean_absolute_error",
-        cv=3,                      # 5 folds au lieu de 3
+        cv=3,
         random_state=42,
         n_jobs=-1,
         verbose=1
@@ -234,52 +231,7 @@ def optimiser_XGBRegressor_2(X_train, y_train):
     meilleurs_parametres = recherche_xgb.best_params_
     mae_cv = -recherche_xgb.best_score_
 
-    print("Meilleurs paramètres :", meilleurs_parametres)
-    print("MAE CV :", round(mae_cv, 2), "€/m²")
-
     return meilleur_modele, meilleurs_parametres, mae_cv
-
-# def optimiser_XGBRegressor_2(X_train, y_train):
-
-#     pipeline_xgb = Pipeline([
-#         ("preprocessor", creer_preprocessor(X_train)),
-#         ("model", XGBRegressor(
-#             objective="reg:squarederror",
-#             random_state=42,
-#             n_jobs=1
-#         ))
-#     ])
-
-#     parametres = {
-#         "model__n_estimators": randint(700, 901),
-#         "model__learning_rate": uniform(0.05, 0.02),
-#         "model__max_depth": [6, 7, 8],
-#         "model__min_child_weight": [1, 2, 3],
-#         "model__subsample": uniform(0.75, 0.15),
-#         "model__colsample_bytree": uniform(0.75, 0.15),
-#         "model__reg_alpha": uniform(0.10, 0.20),
-#         "model__reg_lambda": uniform(1.8, 1.2),
-#         "model__gamma": uniform(0.05, 0.15)
-#     }
-
-#     recherche_xgb = RandomizedSearchCV(
-#         estimator=pipeline_xgb,
-#         param_distributions=parametres,
-#         n_iter=20,
-#         scoring="neg_mean_absolute_error",
-#         cv=3,
-#         random_state=42,
-#         n_jobs=-1,
-#         verbose=1
-#     )
-
-#     recherche_xgb.fit(X_train, y_train)
-
-#     meilleur_modele = recherche_xgb.best_estimator_
-#     meilleurs_parametres = recherche_xgb.best_params_
-#     mae_cv = -recherche_xgb.best_score_
-
-#     return meilleur_modele, meilleurs_parametres, mae_cv
 
 def entrainer_random_forest(X_train, y_train):
     
