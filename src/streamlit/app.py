@@ -257,22 +257,43 @@ with onglet_estimation:
 # ============================================================
 
 with onglet_performances:
-    st.subheader("Performances du modèle final")
+
+    st.subheader("Performances des modèles")
     st.write("Le modèle retenu est un **XGBoost optimisé**. Il a été évalué sur un jeu de test qui n’a pas été utilisé pendant son entraînement.")
 
-    metrique1, metrique2, metrique3 = st.columns(3)
-    metrique1.metric("MAE", "642,13 €/m²")
-    metrique2.metric("RMSE", "921,15 €/m²")
-    metrique3.metric("R²", "0,63")
+    choix_modele = st.radio(
+        "Choisir le modèle",
+        ["XGBoost classique", "XGBoost temporel"],
+        horizontal=True,
+        key="choix_modele_performance"
+    )
+    
+    if choix_modele == "XGBoost classique":
+        metrique1, metrique2, metrique3 = st.columns(3)
+        metrique1.metric("MAE", "642,13 €/m²")
+        metrique2.metric("RMSE", "921,15 €/m²")
+        metrique3.metric("R²", "0,63")
 
-    st.info("La MAE signifie que l’écart absolu moyen entre le prix réel et le prix prédit est d’environ 642 €/m².")
-   
+        st.info("La MAE signifie que l’écart absolu moyen entre le prix réel et le prix prédit est d’environ 642 €/m².")
+    else:
+        metrique1, metrique2, metrique3 = st.columns(3)
+        metrique1.metric("MAE", "615,85 €/m²")
+        metrique2.metric("RMSE", "874,83 €/m²")
+        metrique3.metric("R²", "0,58")
+
+        st.info("La MAE signifie que l’écart absolu moyen entre le prix réel et le prix prédit est d’environ 615 €/m².")
+
     st.markdown("### Évolution des performances de XGBoost")
-
-    comparaison_modeles = pd.DataFrame({
-        "Modèle": ["XGBoost initial", "XGBoost optimisé", "XGBoost optimisé 2"],
-        "MAE": [673.98, 649.39, 642.13]
-    })
+    if choix_modele == "XGBoost classique":
+        comparaison_modeles = pd.DataFrame({
+            "Modèle": ["XGBoost initial", "XGBoost optimisé", "XGBoost optimisé 2"],
+            "MAE": [673.98, 649.39, 642.13]
+        })
+    else:
+        comparaison_modeles = pd.DataFrame({
+            "Modèle": ["XGBoost initial", "XGBoost optimisé", "XGBoost optimisé 2"],
+            "MAE": [621.01, 619.34, 615.85]
+        })
 
     graphique = alt.Chart(comparaison_modeles).mark_line(point=True).encode(
         x=alt.X("Modèle:N", sort=None, title="", axis=alt.Axis(labelAngle=0)),
@@ -280,13 +301,13 @@ with onglet_performances:
         tooltip=["Modèle", alt.Tooltip("MAE:Q", title="MAE", format=".2f")]
     )
 
-    st.altair_chart(graphique, use_container_width=True)
-
-    st.caption("Évolution de la MAE : 673,98 → 649,39 → 642,13 €/m². Plus la MAE est faible, meilleure est la précision moyenne du modèle.")
-
-
+    st.altair_chart(graphique, use_container_width=True)  
+    if choix_modele == "XGBoost classique":
+        st.caption("Évolution de la MAE : 673,98 → 649,39 → 642,13 €/m². Plus la MAE est faible, meilleure est la précision moyenne du modèle.")
+    else:
+        st.caption("Évolution de la MAE : 621.01 → 619.34 → 615.85 €/m². Plus la MAE est faible, meilleure est la précision moyenne du modèle.")
+           
     st.markdown("### Explicabilité du modèle avec SHAP")
-
     st.write(
         "Ce graphique montre comment les principales variables influencent les prédictions du modèle. "
         "Les variables sont classées de la plus influente à la moins influente. "
@@ -312,34 +333,169 @@ with onglet_performances:
         st.warning("Le graphique shap.png est introuvable.")
 
 # ============================================================
-# ONGLET 3 : À PROPOS
+# ONGLET 4 : À PROPOS
 # ============================================================
 
 with onglet_projet:
+
     st.subheader("À propos de Compagnon Immobilier")
-    st.write("**Compagnon Immobilier** est un projet de Data Science dont l’objectif est d’estimer le prix au m² d’un logement situé dans le département du Rhône.")
 
-    st.markdown("### Données utilisées")
-    st.write("Le projet repose principalement sur les données **DVF (Demandes de valeurs foncières)**, qui décrivent les transactions immobilières réalisées dans le Rhône.")
-    st.write("Ces données ont été enrichies avec des **indicateurs INSEE à l’échelle communale**, afin d’intégrer au modèle des informations sur le contexte socio-économique et territorial des communes.")
+    st.write(
+        "**Compagnon Immobilier** est un projet de Data Science "
+        "dont l'objectif est d'estimer le prix au m² d'un logement "
+        "situé dans le département du Rhône (69). "
+        "L'application propose deux approches de prédiction "
+        "basées sur des modèles XGBoost."
+    )
 
-    st.markdown("### Informations prises en compte")
-    st.markdown("- Type de logement\n- Surface habitable\n- Nombre de pièces principales\n- Commune\n- Coordonnées géographiques\n- Surface du terrain\n- Distance par rapport au centre de Lyon\n- Année et mois de la transaction\n- Niveau de vie médian\n- Population et densité\n- Caractéristiques du parc de logements\n- Nombre d’établissements")
+    # ====================================================
+    # DONNÉES UTILISÉES
+    # ====================================================
 
-    st.markdown("### Enrichissement avec les données INSEE")
-    st.info("L’enrichissement avec les données INSEE permet de compléter les caractéristiques propres au logement par des informations sur son environnement communal. L’objectif est de mieux représenter les différences territoriales susceptibles d’influencer les prix immobiliers.")
+    st.markdown("### 📂 Données utilisées")
 
-    st.markdown("### Démarche de modélisation")
-    st.write("Plusieurs modèles ont été entraînés et comparés : DummyRegressor, régression linéaire, Ridge, Random Forest, CatBoost et XGBoost.")
-    st.write("Le modèle **XGBoost optimisé** a été retenu, car il présente les meilleures performances parmi les modèles étudiés.")
+    st.markdown("""
+    Le projet repose sur plusieurs sources de données :
 
-    st.markdown("### Fonctionnement de l’application")
-    st.write("L’application charge directement le pipeline déjà entraîné depuis le fichier `modele_xgb_final.joblib`.")
-    st.write("Elle ne réentraîne donc pas le modèle. Elle récupère les informations saisies par l’utilisateur et les complète avec les indicateurs INSEE de la commune avant d’effectuer la prédiction.")
+    - **DVF (Demandes de valeurs foncières)** : transactions
+      immobilières réalisées dans le Rhône entre 2021 et 2025.
 
-    # st.warning("Les résultats proposés par cette application sont des estimations et doivent être interprétés avec prudence.")
+    - **INSEE** : indicateurs socio-économiques et territoriaux
+      des communes (population, densité, niveau de vie médian,
+      parc de logements).
+
+    - **OpenStreetMap (OSM)** : informations sur les équipements
+      et services à proximité des logements, notamment les écoles,
+      transports, commerces et espaces verts.
+
+    - **Historique immobilier** : informations sur les transactions
+      précédentes et les prix observés sur le marché local.
+    """)
+
+    # ====================================================
+    # VARIABLES UTILISÉES
+    # ====================================================
+
+    st.markdown("### 🏠 Informations prises en compte")
+
+    st.markdown("""
+    **Caractéristiques du logement**
+    - Type de logement : maison ou appartement
+    - Surface habitable et nombre de pièces
+    - Surface du terrain et nombre de lots
+
+    **Localisation et contexte territorial**
+    - Commune et coordonnées géographiques
+    - Distance par rapport à Lyon
+    - Population, densité et niveau de vie médian
+    - Caractéristiques du parc immobilier
+
+    **Informations temporelles**
+    - Année et mois de référence
+    - Historique des ventes immobilières
+    - Prix médians des transactions précédentes
+    - Transactions comparables
+
+    **Environnement OpenStreetMap**
+    - Écoles et crèches
+    - Transports et commerces essentiels
+    - Espaces verts
+    - Équipements sportifs et services de santé
+    - Distances aux services les plus proches
+    """)
+
+    # ====================================================
+    # MODÉLISATION
+    # ====================================================
+
+    st.markdown("### 🤖 Démarche de modélisation")
+
+    st.write(
+        "Plusieurs algorithmes ont été étudiés lors du projet : "
+        "DummyRegressor, régression linéaire, Ridge, "
+        "Random Forest, CatBoost et XGBoost."
+    )
+
+    st.write(
+        "Deux modèles XGBoost sont proposés dans l'application :"
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### 🏠 XGBoost classique")
+        st.write(
+            "Modèle optimisé utilisant les caractéristiques "
+            "des logements et les indicateurs territoriaux "
+            "DVF et INSEE."
+        )
+
+    with col2:
+        st.markdown("#### 📈 XGBoost temporel")
+        st.write(
+            "Modèle enrichi avec l'historique des transactions "
+            "immobilières et les informations géographiques "
+            "OpenStreetMap."
+        )
+
+    st.caption(
+        "Les deux modèles ont été développés à partir "
+        "de jeux de données et de protocoles d'évaluation "
+        "différents. Leurs performances ne sont donc "
+        "pas directement comparables."
+    )
+
+    # ====================================================
+    # FONCTIONNEMENT DE L'APPLICATION
+    # ====================================================
+
+    st.markdown("### ⚙️ Fonctionnement de l'application")
+
+    st.write(
+        "L'application utilise deux pipelines de Machine Learning "
+        "déjà entraînés, enregistrés au format Joblib :"
+    )
+
+    st.code(
+        "modele_xgb_final.joblib\n"
+        "modele_xgb_temporel_final.joblib",
+        language="text"
+    )
+
+    st.write(
+        "L'utilisateur renseigne les caractéristiques du logement "
+        "dans le formulaire correspondant au modèle choisi. "
+        "Les informations sont ensuite complétées avec les "
+        "données territoriales et historiques disponibles "
+        "avant d'être transmises au modèle pour obtenir "
+        "une estimation du prix au m² et de la valeur totale."
+    )
+
+    st.info(
+        "Dans l'estimation temporelle, les indicateurs OSM "
+        "proviennent des données enregistrées dans le CSV "
+        "pour une transaction proche du point de référence "
+        "communal. Ils ne correspondent pas nécessairement "
+        "à l'environnement exact du logement."
+    )
+
+    st.caption(
+        "Les prédictions sont indicatives et ne remplacent "
+        "pas une expertise immobilière. Les estimations "
+        "personnalisées du modèle temporel restent "
+        "expérimentales."
+    )
+
+    # ====================================================
+    # PIED DE PAGE
+    # ====================================================
+
     st.markdown("---")
-    st.caption("Projet réalisé dans le cadre de la formation Data Scientist par Kawthar CHOUKRI et Luc MARTIAS.")
+
+    st.caption(
+        "Projet réalisé dans le cadre de la formation "
+        "Data Scientist par Kawthar CHOUKRI et Luc MARTIAS."
+    )
 
 # ============================================================
 # STYLE CSS

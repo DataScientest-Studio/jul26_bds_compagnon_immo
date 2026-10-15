@@ -4,11 +4,12 @@
 
 Compagnon Immobilier est un projet de Data Science visant à analyser le marché immobilier dans le Rhône et à développer un modèle de Machine Learning capable d'estimer le prix au m² d'un bien à partir de ses caractéristiques.
 
-Le projet couvre les principales étapes d'une démarche de Data Science : collecte et exploration des données, visualisation, nettoyage, prétraitement, feature engineering, modélisation, évaluation, optimisation et interprétation des modèles.
+Le projet couvre la collecte des données, leur exploration et leur visualisation, le nettoyage, le feature engineering, la modélisation, l'évaluation et l'interprétation des résultats. Les données de transactions immobilières **DVF** sont enrichies par des indicateurs territoriaux **INSEE**, puis par des informations de proximité issues d'**OpenStreetMap (OSM)**.
 
-Les données DVF ont également été enrichies avec des données INSEE afin d'intégrer des caractéristiques socio-économiques et démographiques des communes.
+L'application **Streamlit** propose deux approches complémentaires :
 
-Le modèle final est ensuite sauvegardé et intégré dans une application Streamlit afin de proposer une estimation du prix au m² à partir des caractéristiques renseignées par l'utilisateur.
+1. **Estimation classique (DVF + INSEE)** : estimation à partir des caractéristiques du logement et d'indicateurs communaux.
+2. **Estimation temporelle (DVF + OSM)** : estimation à une date de référence, à partir des caractéristiques du logement, de l'historique des transactions disponibles avant cette date et de variables décrivant l'environnement géographique.
 
 ## Objectifs
 
@@ -27,6 +28,7 @@ Les principaux objectifs du projet sont :
 ## Données
 
 Le projet s'appuie principalement sur les données DVF (Demandes de Valeurs Foncières), enrichies avec plusieurs indicateurs issus de l'INSEE au niveau communal.
+Le nouvel enrichissement OSM décrit les équipements et services présents à proximité des localisations utilisées pour construire les variables géographiques.
 
 Le problème est formulé comme une tâche de régression supervisée, avec `prix_m2` comme variable cible.
 
@@ -57,6 +59,16 @@ Plusieurs informations socio-économiques et démographiques ont été ajoutées
 - nombre de logements vacants ;
 - nombre de propriétaires ;
 - nombre d'établissements.
+
+### Variables OpenStreetMap — Environnement et services
+
+| Commerces essentiels | `commerces_essentiels_500m` | `distance_commerces_essentiels_min` |
+| Espaces verts | `espaces_verts_500m` | `distance_espaces_verts_min` |
+| Santé | `sante_500m` | Selon variables disponibles |
+| Restaurants | `restaurants_500m` | Selon variables disponibles |
+| Sports et loisirs | `sports_loisirs_500m` | Selon variables disponibles |
+| Crèches | `creches_500m` | Selon variables disponibles |
+
 
 ## Prétraitement et Feature Engineering
 
@@ -118,13 +130,29 @@ Une validation croisée a également été utilisée afin d'évaluer la stabilit
 
 Les expérimentations ont montré que XGBoost obtenait les meilleurs résultats parmi les modèles testés. Ses hyperparamètres ont donc été optimisés à l'aide de recherches successives afin d'améliorer progressivement ses performances.
 
-## Enrichissement DVF + INSEE
+## Jointure DVF + INSEE
 
 Afin de déterminer si les informations INSEE apportaient une réelle valeur au modèle, les performances obtenues avec les données DVF seules ont été comparées à celles obtenues après enrichissement avec les données INSEE.
 
 L'enrichissement apporte notamment au modèle des informations sur le contexte socio-économique et démographique des communes.
 
 Les analyses d'importance des variables montrent que certaines variables INSEE, comme le niveau de vie médian, la densité de population ou le nombre de résidences secondaires, sont effectivement utilisées par XGBoost dans ses prédictions.
+
+## Approche 2 — Estimation temporelle DVF + OSM
+
+### Principe
+
+L'approche temporelle vise à produire une estimation associée à une **date de référence**. Contrairement à l'estimation classique, la construction des informations historiques doit tenir compte de l'ordre des transactions : pour prédire à une date donnée, seules les observations antérieures à cette date peuvent être utilisées pour calculer les statistiques de marché.
+
+Le formulaire Streamlit demande :
+
+- Le type de logement : **Appartement** ou **Maison**.
+- La **commune**.
+- La **surface habitable** en m².
+- Le **nombre de pièces**.
+- La **date de référence**.
+
+La fonction `creer_features_temporelles(...)` prépare les variables compatibles avec le modèle, ainsi qu'un historique de transactions servant notamment à la comparaison locale.
 
 ## Résultats
 
@@ -170,26 +198,6 @@ Globalement, les prédictions suivent la tendance des valeurs réelles. Cependan
 
 L'analyse des plus grandes erreurs confirme que le modèle rencontre davantage de difficultés sur certains biens situés dans la partie haute de la distribution des prix et tend à sous-estimer certains biens particulièrement chers.
 
-## Deep Learning – MLP
-
-Une approche de Deep Learning a également été explorée afin de comparer XGBoost à un réseau de neurones sur les mêmes données tabulaires.
-
-Un MLP (Multi-Layer Perceptron) composé de plusieurs couches Dense a été développé.
-
-Les données ont été adaptées au réseau de neurones avec une standardisation des variables numériques.
-
-L'entraînement utilise notamment :
-
-- une séparation des données d'entraînement et de validation ;
-- plusieurs epochs ;
-- des batchs de 32 observations ;
-- un EarlyStopping afin de limiter le surapprentissage et de conserver les meilleurs poids.
-
-Une courbe d'apprentissage permet ensuite de comparer l'évolution de l'erreur sur les données d'entraînement et de validation.
-
-Le MLP est finalement évalué avec les mêmes métriques que XGBoost (MAE, RMSE et R²), afin de comparer directement les deux approches.
-
-Cette expérimentation permet d'évaluer l'intérêt du Deep Learning sur les données tabulaires du projet.
 
 ## Sauvegarde du modèle
 
@@ -217,6 +225,7 @@ L'application charge directement le modèle XGBoost final sauvegardé avec Jobli
 │   │   ├── dvf_insee_enrichi.csv
 │   │   ├── dvf_nettoye.csv
 │   │   ├── insee_comparateur_territoires_69.csv
+|   |   ├── dvf_nettoye_features_enrichies_osm.csv
 │   │   └── referentiel_communes_rhone.csv
 │   │
 │   └── raw/
@@ -227,6 +236,7 @@ L'application charge directement le modèle XGBoost final sauvegardé avec Jobli
 ├── models/
 │   ├── .gitkeep
 │   └── modele_xgb_final.joblib
+
 │
 ├── notebooks/
 │   ├── .gitkeep
@@ -240,6 +250,8 @@ L'application charge directement le modèle XGBoost final sauvegardé avec Jobli
 │   ├── 07_modelisation_baseline.ipynb
 │   ├── 08_modelisation_avancee.ipynb
 │   └── 09_dvf_compare_features_ml.ipynb
+│   └── 11_enrichissement_features_protocole_temporel.ipynb
+|   
 │
 ├── references/
 │   └── .gitkeep
