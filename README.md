@@ -138,11 +138,14 @@ L'enrichissement apporte notamment au modèle des informations sur le contexte s
 
 Les analyses d'importance des variables montrent que certaines variables INSEE, comme le niveau de vie médian, la densité de population ou le nombre de résidences secondaires, sont effectivement utilisées par XGBoost dans ses prédictions.
 
-## Approche 2 — Estimation temporelle DVF + OSM
+## Approche 2 — Modélisation temporelle et enrichissement des variables
+
 
 ### Principe
 
 L'approche temporelle vise à produire une estimation associée à une **date de référence**. Contrairement à l'estimation classique, la construction des informations historiques doit tenir compte de l'ordre des transactions : pour prédire à une date donnée, seules les observations antérieures à cette date peuvent être utilisées pour calculer les statistiques de marché.
+
+Cette approche repose sur un enrichissement progressif des variables, évalué par ablation, afin d'étudier l'apport des historiques de transactions, des indicateurs de marché local, des biens comparables et des informations géographiques issues d'OpenStreetMap (OSM).
 
 Le formulaire Streamlit demande :
 
@@ -156,7 +159,7 @@ La fonction `creer_features_temporelles(...)` prépare les variables compatibles
 
 ## Résultats
 
-Après enrichissement avec les données INSEE et optimisation de XGBoost, les résultats obtenus sont :
+Après fusion avec les données INSEE et optimisation de XGBoost, les résultats obtenus sont :
 
 | Modèle | MAE (€/m²) | RMSE (€/m²) | R² |
 |---|---:|---:|---:|
@@ -225,18 +228,18 @@ L'application charge directement le modèle XGBoost final sauvegardé avec Jobli
 │   │   ├── dvf_insee_enrichi.csv
 │   │   ├── dvf_nettoye.csv
 │   │   ├── insee_comparateur_territoires_69.csv
-|   |   ├── dvf_nettoye_features_enrichies_osm.csv
+|   |   ├── dvf_nettoye_features_enric	hies_osm.csv
 │   │   └── referentiel_communes_rhone.csv
 │   │
 │   └── raw/
 │       ├── comparateur_territoires.csv
 │       ├── dvf_69.csv
 │       └── insee_comparateur_territoires_69.csv
+│		└──	osm_69_2025.csv
 │
 ├── models/
 │   ├── .gitkeep
 │   └── modele_xgb_final.joblib
-
 │
 ├── notebooks/
 │   ├── .gitkeep
@@ -245,13 +248,15 @@ L'application charge directement le modèle XGBoost final sauvegardé avec Jobli
 │   ├── 03_dvf_dataviz.ipynb
 │   ├── 04_dvf_preprocessing_feature.ipynb
 │   ├── 04_insee_preprocessing_features.ipynb
+│   ├── 04_osm_preprocessing_features.ipynb
 │   ├── 05_insee_dataviz.ipynb
-│   ├── 06_enrichissement_dvf_insee.ipynb
+│   ├── 06_fusion_dvf_insee.ipynb
 │   ├── 07_modelisation_baseline.ipynb
 │   ├── 08_modelisation_avancee.ipynb
-│   └── 09_dvf_compare_features_ml.ipynb
-│   └── 11_enrichissement_features_protocole_temporel.ipynb
-|   
+│ 	├──	09_dvf_insee_enrichissement_features_osm.ipynb
+│ 	├──	10_modelisation_enrichissement_protocole_temporel.ipynb
+│   └── 11_dvf_compare_features_ml.ipynb
+│
 │
 ├── references/
 │   └── .gitkeep
