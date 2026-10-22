@@ -7,7 +7,7 @@ from sklearn.neighbors import BallTree
 
 #--------------------------------------------------------------------------------------------------------------------------
 
-    ### AJOUT
+    
 def verifier_structure_dvf(dvf):
     """Contrôles légers avant feature engineering."""
     colonnes_min = {
@@ -44,7 +44,7 @@ def creer_features_enrichi(dvf):
 
 #--------------------------------------------------------------------------------------------------------------------------
 
-    ### AJOUT
+    
     dvf["trimestre_mutation"] = dvf["date_mutation"].dt.quarter
     dvf["mois_sin"] = np.sin(2 * np.pi * dvf["mois_mutation"] / 12)
     dvf["mois_cos"] = np.cos(2 * np.pi * dvf["mois_mutation"] / 12)
@@ -64,20 +64,20 @@ def creer_features_enrichi(dvf):
 
 
 #--------------------------------------------------------------------------------------------------------------------------
-     ### AJOUT
+     
     dvf["log_surface_terrain"] = np.where(dvf["surface_terrain"] > 0,np.log1p(dvf["surface_terrain"]),np.nan)
-     ### AJOUT
+     
     dvf["terrain_bati_ratio"] = (dvf["surface_terrain"] / dvf["surface_reelle_bati"])
 
-    ### AJOUT
+    
     dvf["pieces_par_m2"] = (dvf["nombre_pieces_principales"] / dvf["surface_reelle_bati"])
-    ### AJOUT
+    
     dvf["has_terrain"] = (dvf["surface_terrain"].fillna(0) > 0).astype(int)
 
-    ### AJOUT
+    
     dvf["has_lot"] = (dvf["nombre_lots"].fillna(0) > 0).astype(int)
     
-    ### AJOUT
+    
     carrez_cols = [c for c in ["lot1_surface_carrez", "lot2_surface_carrez","lot3_surface_carrez", "lot4_surface_carrez","lot5_surface_carrez",]if c in dvf.columns]
     if carrez_cols:
         dvf["surface_carrez_totale"] = dvf[carrez_cols].sum(axis=1, min_count=1)
@@ -91,14 +91,14 @@ def creer_features_enrichi(dvf):
         dvf["ecart_carrez_bati"] = np.nan
 
 
-    ### AJOUT
+    
     if "nature_culture" in dvf.columns:
         dvf["has_nature_culture"] = dvf["nature_culture"].notna().astype(int)
         nature = dvf["nature_culture"].fillna("").str.lower()
         dvf["nature_jardin"] = nature.eq("jardins").astype(int)
         dvf["nature_terrain_agrement"] = nature.eq("terrains d'agrément").astype(int)
 
-    ### AJOUT
+    
     if "adresse_code_voie" in dvf.columns:
         dvf["has_code_voie"] = dvf["adresse_code_voie"].notna().astype(int)
 
@@ -128,7 +128,7 @@ def creer_features_enrichi(dvf):
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-### AJOUT
+
 def ajouter_features_equipements_osm(dvf, osm):
     """Ajoute des variables décrivant les équipements présents à proximité de chaque transaction DVF."""
     dvf = dvf.copy()
@@ -638,7 +638,7 @@ def detecter_prix_extremes(dvf):
 #--------------------------------------------------------------------------------------------------------------------------
 
 
-### AJOUT
+
 
 def ajouter_historique_parcelle(dvf):
     """Ajoute des informations sur les ventes précédentes de la parcelle."""
@@ -679,7 +679,7 @@ def ajouter_historique_parcelle(dvf):
     return dvf.sort_values("_ordre_original").drop(columns="_ordre_original")
 
 
-### AJOUT
+
 
 def ajouter_historique_voie(dvf):
     """Ajoute le niveau de prix historique observé sur la même voie."""
@@ -707,7 +707,7 @@ def ajouter_historique_voie(dvf):
     return dvf.drop(columns="_jour")
 
 
-### AJOUT
+
 
 def ajouter_marche_local_historique(dvf):
     """Ajoute le niveau de prix historique observé dans la même commune."""
@@ -734,7 +734,7 @@ def ajouter_marche_local_historique(dvf):
     return dvf.drop(columns="_jour")
 
 
-### AJOUT
+
 
 def ajouter_comparables(dvf):
     """Ajoute une estimation basée sur des biens de caractéristiques proches."""
@@ -785,7 +785,7 @@ def ajouter_comparables(dvf):
 
 
 
-### AJOUT
+
 
 def finaliser_experience(df, chemin=None):
 
